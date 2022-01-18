@@ -1,0 +1,44 @@
+README FILE
+
+Name: Sultan Madkhali
+UID: 705175982
+Email: s.h.madkhal@gmail.com or sultanm@g.ucla.edu
+
+
+High level design:
+Client:
+  Since implementation of three way handshake and teardown was given, all I had to do
+  was implement pipelining using a window. So, I had 3 loops, one for sending first ten
+  packets (or less if file was smaller), one for increasing window size (if file was
+  big enough), and the last loop for receiving the last of the ACKs sent by the server.
+
+Server:
+  Implementation here was easier. Other than handshake and teardown, I had one loop
+  that handled everything in which a packet would come and if it was in the correct
+  order the packet would write to *.file and would send an ACK back to the client.
+  If order was wrong meaning a packet was lost we send the last possible packet
+  with the correctly processed ACK number.
+
+
+Problems:
+  1.
+    I initially had a problem with the order of the packets. Since the first packet
+    was already sent out by the skeleton code, I had to incorporate that into my seqNum
+    addition which was confusing me at first.
+  2.
+    I had a problem with implementation of the window in which I didn't know how to handle
+    the case where the window increased in size. I eventually solved it by having an index
+    variable that tracked the packet as it looped around the packet array of size 10.
+  3.
+    I had a problem with resending packets. I didn't know how to make the timer for the least
+    recently used packet so I just set a timer from the beginning and for each correct
+    ACKd packet that came back I reset the timer.
+
+
+Acknowledgments:
+  TA slides
+
+  Used to create 10MB file of all 'a's
+  perl -e 'print "a" x 10485760' > daygeek6.txt
+
+Thanks for the class :)
