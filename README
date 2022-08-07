@@ -4,6 +4,12 @@ Name: Sultan Madkhali
 UID: 705175982
 Email: s.h.madkhal@gmail.com or sultanm@g.ucla.edu
 
+Link to github project: https://github.com/sultanm1/Simple-Window-Based-Reliable-Data-Transfer
+
+Overview:
+Implementation of reliable data transfer (similar to TCP) using UDP. The goal of this project 
+was to see how packet loss was implemented. I had to implement large file transmission and
+loss recovery using GBN (Go-Back-N).
 
 High level design:
 Client:
