@@ -48,7 +48,6 @@ void printTimeout(struct packet* pkt) {
 }
 
 // Building a packet by filling the header and contents.
-// This function is provided to you and you can use it directly
 void buildPkt(struct packet* pkt, unsigned short seqnum, unsigned short acknum, char syn, char fin, char ack, char dupack, unsigned int length, const char* payload) {
     pkt->seqnum = seqnum;
     pkt->acknum = acknum;
@@ -106,22 +105,15 @@ int main (int argc, char *argv[])
 
     int cliaddrlen = sizeof(cliaddr);
 
-    // NOTE: We set the socket as non-blocking so that we can poll it until
-    //       timeout instead of getting stuck. This way is not particularly
-    //       efficient in real programs but considered acceptable in this
-    //       project.
-    //       Optionally, you could also consider adding a timeout to the socket
-    //       using setsockopt with SO_RCVTIMEO instead.
+
     fcntl(sockfd, F_SETFL, O_NONBLOCK);
 
-    // =====================================
 
     unsigned short seqNum = (rand() * rand()) % MAX_SEQN;
 
     for (int i = 1; ; i++) {
         // =====================================
-        // Establish Connection: This procedure is provided to you directly and
-        // is already working.
+        // Establish Connection
 
         int n;
 
@@ -185,13 +177,7 @@ int main (int argc, char *argv[])
                 break;
         }
 
-        // *** TODO: Implement the rest of reliable transfer in the server ***
-        // Implement GBN for basic requirement or Selective Repeat to receive bonus
-
-        // Note: the following code is not the complete logic. It only expects
-        //       a single data packet, and then tears down the connection
-        //       without handling data loss.
-        //       Only for demo purpose. DO NOT USE IT in your final submission
+       
         struct packet recvpkt;
         struct packet dupackpak;
         int lastacknumpkt = (ackpkt.seqnum);
@@ -202,21 +188,19 @@ int main (int argc, char *argv[])
 
 
                 if (recvpkt.seqnum == cliSeqNum  % MAX_SEQN && recvpkt.acknum == lastacknumpkt % MAX_SEQN) {
-                    //If we enter this if-statement we're chilling
                     // cliSeqNum = (cliSeqNum + 1) % MAX_SEQN;
 
                     if( fwrite(recvpkt.payload, sizeof(char), recvpkt.length, fp) <= 0){
                       printf("Error with writing \n");
                       break;
-                    }//We write to our file
+                    }
                     seqNum = recvpkt.acknum;
                     cliSeqNum = (recvpkt.seqnum + recvpkt.length) % MAX_SEQN;
 
                     buildPkt(&recvpkt, seqNum, cliSeqNum, 0, 0, 1, 0, 0, NULL);
                     printSend(&recvpkt, 0);
                     sendto(sockfd, &recvpkt, PKT_SIZE, 0, (struct sockaddr*) &cliaddr, cliaddrlen);
-                    // lastacknumpkt = lastacknumpkt+1;
-                    // break;
+
                 }
 
                 else if (recvpkt.fin) {  //What I understood is that this is the fin packet that tells us send no more data
@@ -230,8 +214,7 @@ int main (int argc, char *argv[])
 
                     break;
                 }
-                //*WE HAVE TO HAVE AN ELSE STATEMENT FOR THE TIMEOUT
-                //IN HERE WE JUST RESEND THE LAST ACKd packet
+
 
                 else{
                   //This just sends last ACKd packet as DUP-ACK
@@ -243,12 +226,9 @@ int main (int argc, char *argv[])
         }
 
 
-        // *** End of your server implementation ***
 
         fclose(fp);
-        // =====================================
-        // Connection Teardown: This procedure is provided to you directly and
-        // is already working.
+        // Connection Teardown
 
         struct packet finpkt, lastackpkt;
         buildPkt(&finpkt, seqNum, 0, 0, 1, 0, 0, 0, NULL);
