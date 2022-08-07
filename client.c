@@ -81,7 +81,6 @@ void buildPkt(struct packet* pkt, unsigned short seqnum, unsigned short acknum, 
     memcpy(pkt->payload, payload, length);
 }
 
-// =====================================
 
 double setTimer() {
     struct timeval e;
@@ -102,7 +101,6 @@ int isTimeout(double end) {
     return ((end - start) < 0.0);
 }
 
-// =====================================
 
 int main (int argc, char *argv[])
 {
@@ -145,19 +143,10 @@ int main (int argc, char *argv[])
 
     int servaddrlen = sizeof(servaddr);
 
-    // NOTE: We set the socket as non-blocking so that we can poll it until
-    //       timeout instead of getting stuck. This way is not particularly
-    //       efficient in real programs but considered acceptable in this
-    //       project.
-    //       Optionally, you could also consider adding a timeout to the socket
-    //       using setsockopt with SO_RCVTIMEO instead.
+    //Set the socket as non-blocking.
     fcntl(sockfd, F_SETFL, O_NONBLOCK);
 
-    // =====================================
-    // Establish Connection: This procedure is provided to you directly and is
-    // already working.
-    // Note: The third step (ACK) in three way handshake is sent along with the
-    // first piece of along file data thus is further below
+    // Establish Connection
 
     struct packet synpkt, synackpkt;
 
@@ -190,14 +179,11 @@ int main (int argc, char *argv[])
         }
     }
 
-    // =====================================
-    // FILE READING VARIABLES
-
+    // File reading vars.
     char buf[PAYLOAD_SIZE];
     size_t m;
 
-    // =====================================
-    // CIRCULAR BUFFER VARIABLES
+    // Circular reading vars.
 
     struct packet ackpkt;
     struct packet pkts[WND_SIZE];
@@ -205,8 +191,7 @@ int main (int argc, char *argv[])
     int e = 0;
     // int full = 0;
 
-    // =====================================
-    // Send First Packet (ACK containing payload)
+    // Send First Packet
 
     m = fread(buf, 1, PAYLOAD_SIZE, fp);
 
@@ -219,14 +204,6 @@ int main (int argc, char *argv[])
     e = 1;
 
     int smallFileTransmission = 0;
-    // =====================================
-    // *** TODO: Implement the rest of reliable transfer in the client ***
-    // Implement GBN for basic requirement or Selective Repeat to receive bonus
-
-    // Note: the following code is not the complete logic. It only sends a
-    //       single data packet, and then tears down the connection without
-    //       handling data loss.
-    //       Only for demo purpose. DO NOT USE IT in your final submission
 
 
 
@@ -313,8 +290,6 @@ int main (int argc, char *argv[])
             sendto(sockfd, &pkts[news % WND_SIZE], PKT_SIZE, 0, (struct sockaddr*) &servaddr, servaddrlen);
           }
 
-          //send packets w/ resend bs
-
           mytimer = setTimer(); //resetting timer
         }
         n = recvfrom(sockfd, &ackpkt, PKT_SIZE, 0, (struct sockaddr *) &servaddr, (socklen_t *) &servaddrlen);
@@ -324,12 +299,10 @@ int main (int argc, char *argv[])
             if((pkts[s % WND_SIZE].seqnum + pkts[s % WND_SIZE].length) % MAX_SEQN  == ackpkt.acknum ||
             (pkts[s % WND_SIZE].seqnum + pkts[s % WND_SIZE].length) % MAX_SEQN  < ackpkt.acknum){
               mytimer = setTimer(); //resetting timer
-              // printf("s number is %d \n", s % WND_SIZE);
               m = fread(buf, 1, PAYLOAD_SIZE, fp);
               if(m <= 0){
                 break;
               }
-              // printf("Seq num is %d and m is %d\n", seqNum, m);
 
 
               buildPkt(&pkts[s % WND_SIZE], seqNum, (synackpkt.seqnum + 1) % MAX_SEQN, 0, 0, 0, 0, m, buf);
@@ -348,7 +321,6 @@ int main (int argc, char *argv[])
     while (1) {
       n = recvfrom(sockfd, &ackpkt, PKT_SIZE, 0, (struct sockaddr *) &servaddr, (socklen_t *) &servaddrlen);
         if (n > 0) {
-            // printf(" How many accesses here\n" );
             printRecv(&ackpkt);
             break;
             lessThanWindowSize--;
@@ -363,12 +335,9 @@ int main (int argc, char *argv[])
   }
 
 
-    // *** End of your client implementation ***
     fclose(fp);
 
-    // =====================================
-    // Connection Teardown: This procedure is provided to you directly and is
-    // already working.
+    // Connection Teardown
 
     struct packet finpkt, recvpkt;
 
